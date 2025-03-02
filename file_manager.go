@@ -27,15 +27,18 @@ func writeFile(text string, file *os.File) {
 // размер файла
 func sizeFile(filename string) {
 	f, err := os.Open(filename)
-
+	if err != nil {
+		return fmt.Errorf("failed to open file: %w", err)
+	}
 	defer f.Close()
 
 	fi, err := f.Stat()
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("failed to get file info: %w", err)
 	}
 
 	fmt.Println("File size:", fi.Size(), "bytes")
+	return nil
 }
 
 func main() {
@@ -58,6 +61,9 @@ func main() {
 	}
 
 	if *sizeFlag {
-		sizeFile(filename)
+		if err := sizeFile(filename); err != nil {
+			fmt.Println("Error:", err)
+			os.Exit(1)
+		}
 	}
 }
