@@ -6,35 +6,37 @@ import (
 	"os"
 )
 
-// функция создания файла
-func createFile(filename string, text string) {
+// Функция создания файла (теперь возвращает error)
+func createFile(filename string, text string) error {
 	file, err := os.Create(filename)
-
 	if err != nil {
-		fmt.Println("Не получилось создать:", err)
-		os.Exit(1)
+		return fmt.Errorf("create error: %w", err)
 	}
-
 	defer file.Close()
-	writeFile(text, file)
+
+	if err := writeFile(text, file); err != nil {
+		return fmt.Errorf("write error: %w", err)
+	}
+	return nil // Явный возврат при успехе
 }
 
-// функция записи файла
-func writeFile(text string, file *os.File) {
-	file.WriteString(text)
+// Функция записи файла (возвращает error)
+func writeFile(text string, file *os.File) error {
+	_, err := file.WriteString(text)
+	return err // Возвращаем ошибку или nil
 }
 
-// размер файла
-func sizeFile(filename string) {
+// Функция получения размера файла
+func sizeFile(filename string) error {
 	f, err := os.Open(filename)
 	if err != nil {
-		return fmt.Errorf("failed to open file: %w", err)
+		return fmt.Errorf("open error: %w", err)
 	}
 	defer f.Close()
 
 	fi, err := f.Stat()
 	if err != nil {
-		return fmt.Errorf("failed to get file info: %w", err)
+		return fmt.Errorf("stat error: %w", err)
 	}
 
 	fmt.Println("File size:", fi.Size(), "bytes")
@@ -42,22 +44,23 @@ func sizeFile(filename string) {
 }
 
 func main() {
-	// Определяем флаги
-	createFlag := flag.Bool("create", false, "Create file if it doesn't exist")
+	createFlag := flag.Bool("create", false, "Create file")
 	sizeFlag := flag.Bool("size", false, "Print file size")
-	textFlag := flag.String("text", "Hello, Go!", "Text to write to the file")
+	textFlag := flag.String("text", "Hello, Go!", "Text to write")
 
 	flag.Parse()
 
-	// Получаем имя файла из аргументов
 	filename := flag.Arg(0)
 	if filename == "" {
 		fmt.Println("Filename is required")
-		return
+		os.Exit(1)
 	}
 
 	if *createFlag {
-		createFile(filename, *textFlag)
+		if err := createFile(filename, *textFlag); err != nil {
+			fmt.Println("Error:", err)
+			os.Exit(1)
+		}
 	}
 
 	if *sizeFlag {
