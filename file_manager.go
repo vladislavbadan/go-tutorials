@@ -14,8 +14,7 @@ func main() {
 	filename := os.Args[1]
 
 	// открываем файл
-	f, err := os.Open(filename)
-
+	f, err := os.Open(fmt.Sprintf("%s.txt", filename))
 	// проверка на ошибка
 	if os.IsNotExist(err) {
 		// создаем файл так как его нет
@@ -28,8 +27,6 @@ func main() {
 		defer file.Close()
 		file.WriteString("Hello go!")
 
-	} else if err != nil {
-		panic(err)
 	} else {
 		defer f.Close()
 
